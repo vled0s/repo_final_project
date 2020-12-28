@@ -1,19 +1,24 @@
 package com.epam.rd.izh.config;
 
+import com.epam.rd.izh.converter.CarConverter;
 import com.epam.rd.izh.service.UserDetailsServiceMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
@@ -34,18 +39,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .authorizeRequests()
         .antMatchers("/login").anonymous()
         .antMatchers("/registration").permitAll()
-        .antMatchers("/registration/**").permitAll()
 
-        /**
+         /**
          * Открытие доступа к ресурсным пакетам:
          * /webapp/css
          * /webapp/js
          * /webapp/images
          * /webapp/fonts
          */
-        .antMatchers("/css/**").permitAll()
+        .antMatchers("/src/main/webapp/WEB-INF/css/**").permitAll()
         .antMatchers("/js/**").permitAll()
-        .antMatchers("/images/**").permitAll()
+            .antMatchers("/images/**").permitAll()
         .antMatchers("/fonts/**").permitAll()
 
         /**
@@ -67,7 +71,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .formLogin()
         .loginPage("/login")
         .loginProcessingUrl("/login/process")
-        .defaultSuccessUrl("/")
+        .defaultSuccessUrl("/catalog")
         .failureUrl("/login?error")
         .usernameParameter("login")
         .passwordParameter("password")
@@ -76,7 +80,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          * Включение функции выхода из текущей сессии.
          */
         .and()
-        .logout();
+        .logout()
+            .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout", "POST"))
+            .invalidateHttpSession(true)
+            .clearAuthentication(true)
+            .deleteCookies("JSESSIONID")
+            .logoutSuccessUrl("/auth/login");
   }
 
   @Override
@@ -106,4 +115,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
+
+  @Bean
+  public CarConverter carConverter() { return new CarConverter(); }
 }

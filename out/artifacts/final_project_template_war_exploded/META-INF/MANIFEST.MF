@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: IntelliJ IDEA
+Built-By: Vlad
+Build-Jdk: 1.8.0_261
+Implementation-Title: final-project-template
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: com.epam.rd.izh
+Main-Class: ${start-class}
+
