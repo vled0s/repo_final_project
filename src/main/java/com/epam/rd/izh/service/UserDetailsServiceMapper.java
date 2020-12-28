@@ -1,17 +1,16 @@
 package com.epam.rd.izh.service;
 
 import com.epam.rd.izh.entity.AuthorizedUser;
+import com.epam.rd.izh.entity.User;
 import com.epam.rd.izh.repository.UserRepository;
-import java.util.HashSet;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.validation.Valid;
 
 /**
  * Для авторизации через Spring security требуется реализация интерфейса UserDetailsService и его метода
@@ -21,8 +20,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserDetailsServiceMapper implements UserDetailsService {
 
+
+  private final UserRepository userRepository;
+
   @Autowired
-  UserRepository userRepository;
+  private PasswordEncoder passwordEncoder;
+
+  @Autowired
+  public UserDetailsServiceMapper(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
+
 
   /**
    * Данный метод должен вернуть объект User, являющийся пользователем текущей сессии.
@@ -35,17 +43,16 @@ public class UserDetailsServiceMapper implements UserDetailsService {
    */
 
   @Override
-  public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-    AuthorizedUser authorizedUserDto = userRepository.getAuthorizedUserByLogin(login);
-    Set<GrantedAuthority> roles = new HashSet<>();
-    roles.add(new SimpleGrantedAuthority(authorizedUserDto.getRole()));
+    User user = userRepository.findByEmail(email);
+    return AuthorizedUser.fromUserDetails(user);
+  }
 
-    return new User(
-        authorizedUserDto.getLogin(),
-        authorizedUserDto.getPassword(),
-        roles
-    );
+  public boolean saveUser(@Valid User user) {
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    userRepository.save(user);
+    return true;
   }
 
 }

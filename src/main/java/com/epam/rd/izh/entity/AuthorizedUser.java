@@ -1,5 +1,12 @@
 package com.epam.rd.izh.entity;
 
+import com.epam.rd.izh.utils.Role;
+import lombok.Data;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Set;
+
 /**
  * Сущность пользователя, содержит данные(credentials), необходимые для авторизации в Spring Web приложении; Может
  * быть использована как часть бизнес логики приложеняи, например сотрудник больницы, где role определяет его
@@ -9,11 +16,17 @@ package com.epam.rd.izh.entity;
  * добавить в код приложения сервис, генерирующий UUID: 'private UUID id = randomUUID();' и проверяющий его на
  * наличие совпадений с уже существующими.
  */
+@Data
+public class AuthorizedUser implements UserDetails {
 
-public class AuthorizedUser {
-
-  private String login;
+  private Long userId;
+  private String email;
   private String password;
+  private String phone;
+  private String billingAddress;
+  private Set<SimpleGrantedAuthority> authority;
+
+
 
   /**
    * Определяет GrantedAuthority пользователя. Может быть колелкцией, например Set<Strings> если логика приложения
@@ -22,33 +35,56 @@ public class AuthorizedUser {
    * Если роль для бизнес-логики не важна, можно задать для всех объектов 'private String role = "User"'.
    */
 
-  private String role;
+  private Role role;
+
+  public Role getRole() {
+    return role;
+  }
 
   public String getLogin() {
-    return login;
+    return email;
   }
 
   public void setLogin(String login) {
-    this.login = login;
+    this.email = login;
   }
 
   public String getPassword() {
     return password;
   }
 
+  @Override
+  public String getUsername() {
+    return email;
+  }
+
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
+
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
+
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
   public void setPassword(String password) {
     this.password = password;
   }
 
-  public String getRole() {
-    return role;
+  public Set<SimpleGrantedAuthority> getAuthorities() {
+    return authority;
   }
-
-  public void setRole(String role) {
-    this.role = role;
-  }
-
-
 
   /**
    * Ниже представлена простая реализация паттерна builder;
@@ -66,9 +102,21 @@ public class AuthorizedUser {
     return this;
   }
 
-  public AuthorizedUser role(String role) {
-    this.setRole(role);
-    return this;
+
+  public void setAuthorities(Set<SimpleGrantedAuthority> role) {
+    this.authority = role;
+  }
+
+  public static UserDetails fromUserDetails(User user) {
+    return new org.springframework.security.core.userdetails.User(
+            user.getEmail(),
+            user.getPassword(),
+            true,
+            true,
+            true,
+            true,
+            user.getRole().getAuthorities()
+    );
   }
 
 }

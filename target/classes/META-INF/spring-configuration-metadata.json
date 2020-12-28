@@ -1,0 +1,19 @@
+{
+  "groups": [
+    {
+      "name": "storage",
+      "type": "com.epam.rd.izh.config.StorageConfig",
+      "sourceType": "com.epam.rd.izh.config.StorageConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "storage.location",
+      "type": "java.lang.String",
+      "description": "Folder location for storing files",
+      "sourceType": "com.epam.rd.izh.config.StorageConfig",
+      "defaultValue": "src\/main\/webapp\/images"
+    }
+  ],
+  "hints": []
+}
